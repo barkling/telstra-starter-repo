@@ -1,21 +1,24 @@
 package au.com.telstra.simcardactivator.jpa2h2;
 
+import au.com.telstra.simcardactivator.foundation.ActuationResult;
+import au.com.telstra.simcardactivator.foundation.SimCard;
+
 import javax.persistence.*;
 
 @Entity
 public class ActivationRecord {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue()
     private long customerId;
 
-//    @Column(name = "iccid", nullable = false)
+    @Column(nullable = false)
     private String iccid;
 
-//    @Column(name = "customerEmail", nullable = false)
+    @Column(nullable = false)
     private String customerEmail;
 
-//    @Column(name = "active", nullable = false)
+    @Column(nullable = false)
     private boolean active;
 
     // getter and setter
@@ -24,10 +27,10 @@ public class ActivationRecord {
     protected ActivationRecord() {
 
     }
-    public ActivationRecord(String iccid, String customerEmail, boolean active) {
-        this.iccid = iccid;
-        this.customerEmail = customerEmail;
-        this.active = active;
+    public ActivationRecord(SimCard simCard, ActuationResult actuationResult) {
+        this.iccid = simCard.getIccid();
+        this.customerEmail = simCard.getCustomerEmail();
+        this.active = actuationResult.isSuccess();
     }
     public long getId() {
         return customerId;
