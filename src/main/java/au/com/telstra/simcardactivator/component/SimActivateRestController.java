@@ -9,30 +9,27 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class SimActivateRestController {
     private final SimActivateHandler simActivateHandler;
-    private final CustomerRespository customerRespository;
     private final SimCardDatabaseUnit simCardDatabaseUnit;
 
-    public SimActivateRestController(SimActivateHandler simActivateHandler, CustomerRespository customerRespository, SimCardDatabaseUnit simCardDatabaseUnit) {
+    public SimActivateRestController(SimActivateHandler simActivateHandler, SimCardDatabaseUnit simCardDatabaseUnit) {
         this.simActivateHandler = simActivateHandler;
-        this.customerRespository = customerRespository;
         this.simCardDatabaseUnit = simCardDatabaseUnit;
     }
 
     @PostMapping("/activate")
-    public ActuationResult handleSimcardActivate(@RequestBody SimCard card) {
+    public void handleSimcardActivate(@RequestBody SimCard card) {
         var actuationResult = simActivateHandler.activate(card);
 //        customerRespository.save(new ActivationRecord(card,actuationResult));
         simCardDatabaseUnit.save(card, actuationResult);
         System.out.println(actuationResult.isSuccess());
-        return actuationResult;
     }
 
     @GetMapping("/findCustomer")
-    public ActivationRecord findCustomerById(@RequestParam Long simCardId) {
-        return customerRespository.findByCustomerId(simCardId);
+    public SimCard findCustomerById(@RequestParam Long simCardId) {
+        return simCardDatabaseUnit.queryByIccid(simCardId);
     }
-    @GetMapping("/findByIccid")
-    public ActuationResult findByIccid(@RequestParam String iccid) {
-        return simCardDatabaseUnit.queryByIccid(iccid);
-    }
+//    @GetMapping("/findByIccid")
+//    public ActuationResult findByIccid(@RequestParam String iccid) {
+//        return simCardDatabaseUnit.queryByIccid(iccid);
+//    }
 }

@@ -18,8 +18,11 @@ public class SimCardDatabaseUnit {
         customerRespository.save(activationRecord);
     }
 
-    public ActuationResult queryByIccid(String iccid) {
-        var activationRecord =  customerRespository.findByIccid(iccid);
-        return new ActuationResult(activationRecord.isActive());
+    public SimCard queryByIccid(long simCardId) {
+        var activationRecord =  customerRespository.findById(simCardId).orElse(null);
+        if (activationRecord == null) {
+            return null;
+        }
+        return new SimCard(activationRecord);
     }
 }

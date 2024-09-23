@@ -4,7 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 
 
 public interface CustomerRespository extends CrudRepository<ActivationRecord,Long> {
-    ActivationRecord findByCustomerId(long simCardId);
-
-    ActivationRecord findByIccid(String iccid);
+//    ActivationRecord findByCustomerId(long simCardId);
+//
+//    ActivationRecord findByIccid(String iccid);
 }

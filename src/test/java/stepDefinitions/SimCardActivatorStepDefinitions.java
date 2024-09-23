@@ -1,10 +1,7 @@
 package stepDefinitions;
 
 import au.com.telstra.simcardactivator.SimCardActivator;
-import au.com.telstra.simcardactivator.foundation.ActuationResult;
 import au.com.telstra.simcardactivator.foundation.SimCard;
-import au.com.telstra.simcardactivator.jpa2h2.ActivationRecord;
-import au.com.telstra.simcardactivator.jpa2h2.CustomerRespository;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -15,58 +12,42 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.test.context.ContextConfiguration;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.BDDAssumptions.given;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @CucumberContextConfiguration
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ContextConfiguration(classes = SimCardActivator.class, loader = SpringBootContextLoader.class)
 public class SimCardActivatorStepDefinitions {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private final String url = "http://localhost:8080/activate";
-    private final String qryUrl = "http://localhost:8080/findByIccid";
-    private SimCard simCard = new SimCard();
-    private ActuationResult answer;
-    private ActivationRecord record;
-    private CustomerRespository customerRespository;
-    private boolean status;
+    private SimCard simCard;
 
-    @Given("I have a SIM card with ICCID \"1255789453849037777\"")
-    public void i_have_a_SIM_card_with_ICCID() {
+    @Given("a functional sim card")
+    public void aFunctionalSimCard() {
         simCard = new SimCard("1255789453849037777", "horatio.yakima@groovemail.com", false);
     }
 
-    @Given("I have a SIM card with ICCID \"8944500102198304826\"")
-    public void i_have_a_SIM_card_with_ICCID_8944500102198304826() {
+    @Given("a broken sim card")
+    public void aBrokenSimCard() {
         simCard = new SimCard("8944500102198304826", "notorious.criminal@gonepostal.com", false);
     }
 
-    @When("I submit an activation request")
-    public void i_submit_an_activation_request() {
-        answer = restTemplate.postForObject(url, simCard, ActuationResult.class);
-//        simCard.setActive(answer.isSuccess());
-//        customerRespository.save(new ActivationRecord(simCard.getIccid(),simCard.getCustomerEmail(),answer.isSuccess()));
+    @When("a request to activate the sim card is submitted")
+    public void aRequestToActivateTheSimCardIsSubmitted() {
+        this.restTemplate.postForObject("http://localhost:8080/activate", simCard, String.class);
     }
 
-    @Then("the activation should be successful")
-    public void the_activation_should_be_successful() {
-        assertThat(answer.isSuccess()).isTrue();
+    @Then("the sim card is activated and its state is recorded to the database")
+    public void theSimCardIsActivatedAndItsStateIsRecordedToTheDatabase() {
+        var simCard = this.restTemplate.getForObject("http://localhost:8080/findCustomer?simCardId={simCardId}", SimCard.class, 1);
+        assertTrue(simCard.isActive());
     }
 
-    @Then("the activation should fail")
-    public void the_activation_should_be_fail() {
-        assertThat(answer.isSuccess()).isFalse();
-    }
-
-    @When("I query the activation status for ICCID {}")
-    public void i_query_the_activation_status_for_ICCID(String iccid) {
-        record = restTemplate.getForObject(qryUrl, ActivationRecord.class, iccid);
-    }
-
-    @Then("the status should be {}")
-    public void the_status_should_be(String status) {
-        assertThat(record.isActive()).isEqualTo(status);
+    @Then("the sim card fails to activate and its state is recorded to the database")
+    public void theSimCardFailsToActivateAndItsStateIsRecordedToTheDatabase() {
+        var simCard = this.restTemplate.getForObject("http://localhost:8080/findCustomer?simCardId={simCardId}", SimCard.class, 2);
+        assertFalse(simCard.isActive());
     }
 }
